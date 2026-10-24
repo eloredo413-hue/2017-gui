@@ -3342,3 +3342,52 @@ task.spawn(function()
 	end)
 
 end)
+
+-- MOBILE CHAT "..." BUTTON
+--
+-- On a touch device the top bar has two chat buttons: the eye opens
+-- and closes the chat window, and "..." brings up the keyboard so you
+-- can type. Pressing "..." while the window was open closed the
+-- window first, so the eye went grey while "..." turned blue.
+--
+-- With the window open, "..." now just focuses the chat bar inside it,
+-- so you can type and both buttons stay blue. With the window closed
+-- it still opens the keyboard on its own.
+
+task.spawn(function()
+
+	if not IsTouchDevice then
+		return
+	end
+
+	local Modules = LegacyGui:WaitForChild("Modules", 10)
+
+	local ChatScript = Modules and Modules:WaitForChild("Chat", 10)
+
+	if not ChatScript then
+		return
+	end
+
+	local Success, ChatModule = pcall(Suite.require, ChatScript)
+
+	if
+		not Success
+		or type(ChatModule) ~= "table"
+		or type(ChatModule.FocusChatBarFromMobileEllipsis) ~= "function"
+	then
+		return
+	end
+
+	local FocusFromEllipsis = ChatModule.FocusChatBarFromMobileEllipsis
+
+	ChatModule.FocusChatBarFromMobileEllipsis = function(self, ...)
+
+		if self:GetVisibility() then
+			return self:FocusChatBar()
+		end
+
+		return FocusFromEllipsis(self, ...)
+
+	end
+
+end)
