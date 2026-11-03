@@ -3346,13 +3346,17 @@ end)
 -- MOBILE CHAT "..." BUTTON
 --
 -- On a touch device the top bar has two chat buttons: the eye opens
--- and closes the chat window, and "..." brings up the keyboard so you
--- can type. Pressing "..." while the window was open closed the
--- window first, so the eye went grey while "..." turned blue.
+-- and closes the chat window, and "..." is for typing. The port made
+-- "..." a keyboard-only bar that never showed the chat window (and
+-- closed the window if it was open).
 --
--- With the window open, "..." now just focuses the chat bar inside it,
--- so you can type and both buttons stay blue. With the window closed
--- it still opens the keyboard on its own.
+-- Now "..." works like it did in 2017:
+--
+--	* With the window closed, "..." opens it and starts typing, so the
+--	  eye and "..." both turn blue.
+--	* With the window open, "..." just starts typing in it.
+--	* When you stop typing, "..." goes back to white and the window
+--	  stays open with the eye still blue. Tap the eye to close it.
 
 task.spawn(function()
 
@@ -3378,15 +3382,16 @@ task.spawn(function()
 		return
 	end
 
-	local FocusFromEllipsis = ChatModule.FocusChatBarFromMobileEllipsis
+	ChatModule.FocusChatBarFromMobileEllipsis = function(self)
 
-	ChatModule.FocusChatBarFromMobileEllipsis = function(self, ...)
+		-- Showing the window also turns off the keyboard-only bar, so
+		-- the focus below types into the window's own chat bar.
 
-		if self:GetVisibility() then
-			return self:FocusChatBar()
+		if not self:GetVisibility() then
+			self:SetVisible(true)
 		end
 
-		return FocusFromEllipsis(self, ...)
+		self:FocusChatBar()
 
 	end
 
